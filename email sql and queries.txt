@@ -1,0 +1,489 @@
+/*Samuel Orellana*/
+
+/*create email table*/
+create table email(
+msg_id        number         primary key,
+address_id        number(15)     not null,
+subject       varchar(70),
+email_body    varchar(4000),
+send_date    date           not null,
+msg_size  number         not null,
+folder	    number,
+constraint fk_sender
+    foreign key (address_id) references email_address(address_id)
+);
+
+
+/*create email address table*/
+create table email_address(
+address_id         number      primary key,
+email_address    varchar(100)  not null,
+email_pass       varchar(100)  not null,
+owner_first      varchar(60)   not null,
+owner_last       varchar(60)   not null,
+pass_expire      date          not null,
+open_date        date          not null,
+close_date       date
+);
+
+
+/*create folder table*/
+create table folder(
+folder_id       number          primary key,
+folder_name     varchar(225)    not null
+);
+
+
+/*create attachment table*/
+create table attachment(
+attach_id   number          primary key,
+msg_id	     number(30)     not null,
+attach_name varchar(150)    not null,
+constraint fk_msg_id_within_attachment
+    foreign key (msg_id) references email(msg_id)
+);
+
+
+/*create tables for the multi-value columns: recipient, cc, bcc, and message folder(s)*/
+
+
+create table msg_to(
+link_id     number      primary key,
+msg_id      number(30)  not null,
+sender      number(30)  not null,
+recipient   number(30)  not null,
+constraint fk_msg_id_within_msg_to
+    foreign key (msg_id) references email(msg_id),
+constraint fk_sender_within_msg_to
+    foreign key (sender) references email_address(address_id),
+constraint fk_recipient_within_msg_to
+    foreign key (recipient) references email_address(address_id)
+);
+
+
+create table msg_cc(
+link_id     number      primary key,
+msg_id      number(30)  not null,
+sender      number(30)  not null,
+cc               number(30)  not null,
+constraint fk_msg_id_within_msg_cc
+    foreign key (msg_id) references email(msg_id),
+constraint fk_sender_within_msg_cc
+    foreign key (sender) references email_address(address_id),
+constraint fk_recipient_within_msg_cc
+    foreign key (recipient) references email_address(address_id)
+);
+
+
+create table msg_bcc(
+link_id     number      primary key,
+msg_id      number(30)  not null,
+sender      number(30)  not null,
+bcc            number(30)  not null,
+constraint fk_msg_id_within_msg_bcc
+    foreign key (msg_id) references email(msg_id),
+constraint fk_sender_within_msg_bcc
+    foreign key (sender) references email_address(address_id),
+constraint fk_recipient_within_msg_bcc
+    foreign key (recipient) references email_address(address_id)
+);
+
+
+create table msg_folder(
+link_id     number      primary key,
+msg_id      number(30)  not null,
+folder_id   number(30)  not null,
+constraint fk_msg_id_within_msg_folder
+    foreign key (msg_id) references email(msg_id)
+);
+ 
+/* POPULATING TABLES:
+ a) create sequence to populate primary key column
+create sequence address_id_seq
+increment by 3
+start with 237;
+ b) insert values into email_address */
+
+
+/*arbitrary email values for query purposes*/
+insert into email_address values(address_id_seq.nextval, 'sally@yahoo.com', 'sowens52$49i',
+'Sally', 'Owens', '12-JAN-2023', '12-JUL-2004', NULL);
+insert into email_address values(address_id_seq.nextval, 'ridwan@qmail.com', 'awfulp4ssword',
+'Ridwan', 'Denizen', '05-SEP-2023', '03-MAR-2012', NULL);
+insert into email_address values(address_id_seq.nextval, 'fdr1554@hotmail.com', 
+'creativityincarnate', 'Federico', 'Urus', '26-NOV-2024', '30-MAY-2008', NULL);
+insert into email_address values(address_id_seq.nextval, 'shna125@gmail.com', '123abc',
+'Sara', 'Nasal', '15-DEC-2022', '21-APR-2015', NULL);
+insert into email_address values(address_id_seq.nextval, 'otor1@gmail.com', '227133gj',
+'Otto', 'Oreo', '1-JAN-2024', '07-SEP-2013', NULL);
+insert into email_address values(address_id_seq.nextval, ‘tjatheen@msn.com’, ‘j468!55’,
+‘Tim’, ‘Jatheen’, ’14-FEB-2023’, ‘24-JAN-2017’, NULL);
+insert into email_address values(address_id_seq.nextval, ‘dpetersberg45@yahoo.com’, ‘j122401p!’,
+‘Derek’, ‘Petersberg’, ‘21-AUG-2024’, ‘29-NOV-2018’, NULL);
+insert into email_address values(address_id_seq.nextval, ‘etenset39@gmail.com’, ‘ep53$te3’,
+‘Eve’, ‘Tinset’, ‘05-APR-2024’, ‘03-JUN-2016’, NULL);
+insert into email_address values(address_id_seq.nextval, ‘avgjin16@qmail.com’, ‘191294jint1n’,
+‘Jin’, ‘Xiang’, ’06-JUL-2024’, ‘18-SEP-2019’, NULL);
+insert into email_address values(address_id_seq.nextval, ‘vkennedy90@outlook.com’, ‘G#J@ifhj43’,
+‘Vicky’, ‘Kennedy’, ‘22-MAR-2024’, ‘14-JAN-2017’, NULL);
+
+
+/*populate folders i.e., inbox, outbox, spam, sent, etc.*/
+
+insert all
+into folder values(1, 'INBOX')
+into folder values(2, 'SENT')
+into folder values(3, 'DRAFT')
+into folder values(4, 'SPAM')
+into folder values(5, 'FRIENDS')
+select 1 from dual;
+
+/*a) create sequence to populate primary key column*/
+
+create sequence msg_id_in_email_seq
+increment by 5
+start with 10;
+
+/*b) insert values into email*/
+
+insert into email
+values(msg_id_in_email_seq.nextval, 246, 'Checking up', 'Hey, how''ve you been? Just thought I''d check up. Regards', '12-NOV-2022', 2);
+
+insert into email
+values(msg_id_in_email_seq.nextval, 249, null, 'Did you receive my last email? The design team needs confirmation of the samples.', '10-NOV-2022', 2);
+
+insert into email
+values(msg_id_in_email_seq.nextval, 249, 'Shipment Arrived', NULL, '09-NOV-2022', 8);
+
+insert into email
+values(msg_id_in_email_seq.nextval, 249, null, 'Samples are inbound, keep an eye on inbound shipments.', '08-NOV-2022', 2);
+
+insert into email
+values(msg_id_in_email_seq.nextval, 261, 'IMPORTANT OFFER', 'CLICK HERE TO CLAIM PRIZE', '15-NOV-2022', 3);
+
+insert into email
+values(msg_id_in_email_seq.nextval, 243, null, 'We haven''t receiv', null, 1);
+
+insert into email
+values(msg_id_in_email_seq.nextval, 243, null, 'Are we still on for the 26th? Weather should be lovely.', '16-NOV-2022', 2);
+/*and so on until every sender appears at least 7 times except the designated spam account (sender = 261)*/
+
+/* a) create sequence for msg_to to populate primary key column */
+
+create sequence link_id_msg_to_seq
+increment by 5
+start with 33;
+
+/* b) populate msg_to (recipients) table */
+
+insert into msg_to values(link_id_msg_to_seq.nextval, 15, 246, 255);
+insert into msg_to values(link_id_msg_to_seq.nextval, 20, 249, 252);
+insert into msg_to values(link_id_msg_to_seq.nextval, 25, 249, 252);
+insert into msg_to values(link_id_msg_to_seq.nextval, 30, 249, 252);
+insert into msg_to values(link_id_msg_to_seq.nextval, 35, 261, 267);
+insert into msg_to values(link_id_msg_to_seq.nextval, 35, 261, 270);
+
+/*and so on until every ‘to’ entry is entered*/
+
+/* a)	create sequence to populate link_id*/
+
+create sequence link_id_msg_cc_seq
+increment by 5
+start with 12;
+
+/* b) populate msg_cc table */
+insert into msg_cc values(link_id_msg_cc_seq.nextval, 20, 249, 255);
+insert into msg_cc values(link_id_msg_cc_seq.nextval, 25, 249, 255);
+insert into msg_cc values(link_id_msg_cc_seq.nextval, 30, 249, 255);
+insert into msg_cc values(link_id_msg_cc_seq.nextval, 40, 243, 252);
+insert into msg_cc values(link_id_msg_cc_seq.nextval, 85, 243, 264);
+/* and so on until all cc’s have been entered*/
+
+/* a) create sequence for msg_cc to populate primary key column */
+
+create sequence link_id_msg_bcc_seq
+increment by 5
+start with 7;
+
+/* b) populate msg_bcc table */
+
+insert into msg_cc values(link_id_msg_cc_seq.nextval, 140, 249, 249);
+insert into msg_cc values(link_id_msg_cc_seq.nextval, 140, 249, 246);
+
+/*add attachments to table*/
+
+insert into attachment values(1,25, 'shipconfirm.pdf');
+insert into attachment values(2,55, 'click!$TFHERE.jpg');
+insert into attachment values(3,65, 'enticingwebsitename.html');
+insert into attachment values(4,90, 'sample_proto.jpg');
+insert into attachment values(5,100, 'sample_specsheet.pdf');
+
+/*-----------------------------------------------------------------------*/
+
+/* Sample questions with respective queries:
+
+/* 1) Identify the number of messages and total size by email accounts. Display four columns: email account, account owner name, number of messages and total size. Display the account with the greatest storage requirements first. */
+
+select email_address.email_address, email_address.owner_first, email_address.owner_last,
+count(email.msg_id) as msg_count, sum(email.msg_size) as account_size
+from email_address
+join email
+on email_address.address_id = email.address_id 
+group by email_address.email_address, email_address.owner_first, email_address.owner_last
+order by 5 desc;
+ 
+/* 2) Send a new message to sally@yahoo.com. Identify the SQL operations to create and send the message. In addition, Display the new message in the SENT folder and the new message in Sally’s INBOX folder. */
+
+/*create email*/
+insert into email
+values(msg_id_in_email_seq.nextval, 255,'Test email for question 2',NULL,'09-DEC-2022', 1);
+select* from email order by msg_id asc;
+insert into msg_to
+values(link_id_msg_to_seq.nextval,145, 255, 243);
+/*view outbox*/
+select email_address.email_address, email_address.owner_first, email_address.owner_last,email.subject, email.send_date
+from email
+join email_address
+on email.address_id = email_address.address_id
+where email.address_id = 255
+order by send_date desc;
+ 
+/*view inbox*/
+select email_address.email_address, email_address.owner_first, email_address.owner_last,email.subject, email.send_date
+from msg_to
+join email
+on email.address_id = msg_to.sender
+join email_address
+on email.address_id = email_address.address_id
+where msg_to.recipient = 243
+order by send_date desc;
+ 
+/* 3) Move a message from the INBOX to the FRIENDS folder for the account sally@yahoo.com. Identify the SQL operations required to implement. In addition, display the INBOX and SENT folder before and after the operation. */
+
+/*before*/
+select email.folder,email_address.email_address, email_address.owner_first, email_address.owner_last,email.subject, email.send_date
+from msg_to
+join email
+on email.address_id = msg_to.sender
+join email_address
+on email.address_id = email_address.address_id
+where msg_to.recipient = 243
+order by send_date desc; 
+/*change email to friends from inbox*/
+update email set folder = 5 where address_id = 255;
+commit;
+
+/*after*/
+select folder.folder_name,email_address.email_address, email_address.owner_first, email_address.owner_last,email.subject, email.send_date
+from msg_to
+join email
+on email.address_id = msg_to.sender
+join email_address
+on email.address_id = email_address.address_id
+join folder
+on folder.folder_id=email.folder
+where msg_to.recipient = 243
+order by send_date desc;
+ 
+
+
+
+
+/* 4) Create a SQL view to display all messages in the INBOX folder for sally@yahoo.com. Display the columns Received Date, FROM, TO, Subject. Display the most recent message first.*/
+
+select  s2.send_date as "RECEIVED", email_address.email_address as "TO", s2.sender as "FROM", s2.subject
+from
+    (select  email_address.email_address "SENDER", s1.msg_id, s1.recipient, email.send_date, email.subject
+    from
+        (select msg_id, sender, recipient
+        from msg_to
+        where recipient = 243
+        union
+        select msg_id, sender, cc
+        from msg_cc
+        where cc = 243
+        order by msg_id asc) s1
+    join email
+    on s1.msg_id=email.msg_id
+    join email_address
+    on email.address_id = email_address.address_id)s2
+join email_address
+on email_address.address_id = s2.recipient
+order by s2.send_date desc;
+ 
+
+5)	Identify all messages with the term love in the subject or body. Display the columns Received Date, FROM, TO, Subject. Display the most recent message first.
+select s2.send_date"RECEIVED", email_address.email_address"TO", s2.email_address"FROM", s2.subject
+from
+    (select s1.msg_id, email_address.email_address, s1.recipient, s1.subject, s1.send_date
+    from
+        (select msg_to.recipient, email.msg_id, email.address_id, email.subject, email.send_date
+        from email
+        join msg_to
+        on email.msg_id=msg_to.msg_id
+        where upper(subject) like '%LOVE%' or upper(email_body) like '%LOVE%')s1
+    join email_address
+    on s1.address_id = email_address.address_id)s2
+join email_address
+on email_address.address_id = s2.recipient
+order by s2.send_date asc;
+ 
+/* 6) Delete one message. Discuss your approach to delete messages and identify the SQL operations required to implement. Display the folder before and after the deletion. */
+ 
+/*delete child record first*/
+delete from msg_to
+where msg_id = 145;
+/*then delete parent record
+delete from email
+where msg_id = 145;
+
+ 
+/* 7) Identify and move spam messages to the JUNK folder. Identify the SQL operations required to implement. */
+
+/*labeling column as 1 (folder_id for inbox)*/
+update    
+    (select  s2.send_date as "RECEIVED", email_address.email_address as "TO", s2.sender as "FROM", s2.subject, s2.folder
+    from
+        (select  email_address.email_address "SENDER", s1.msg_id, s1.recipient, email.send_date, email.subject, email.folder
+        from
+            (select msg_id, sender, recipient
+            from msg_to
+            where recipient = 243
+            union
+            select msg_id, sender, cc
+            from msg_cc
+            where cc = 243
+            order by msg_id asc) s1
+        join email
+        on s1.msg_id=email.msg_id
+        join email_address
+        on email.address_id = email_address.address_id)s2
+    join email_address
+    on email_address.address_id = s2.recipient
+    order by s2.send_date desc)s3
+set folder = 1;
+/*prior to moving messages to spam folder*/
+select s3.send_date as "RECEIVED", s3.email_address as "TO", s3.sender as "FROM", s3.subject, folder.folder_name as "FOLDER"
+from
+    (select  s2.send_date, email_address.email_address, s2.sender, s2.subject, s2.folder
+    from
+        (select  email_address.email_address "SENDER", s1.msg_id, s1.recipient, email.send_date, email.subject, email.folder
+        from
+            (select msg_id, sender, recipient
+            from msg_to
+            where recipient = 243
+            union
+            select msg_id, sender, cc
+            from msg_cc
+            where cc = 243
+            order by msg_id asc) s1
+        join email
+        on s1.msg_id=email.msg_id
+        join email_address
+        on email.address_id = email_address.address_id)s2
+    join email_address
+    on email_address.address_id = s2.recipient
+    order by s2.send_date desc)s3
+join folder
+on s3.folder = folder.folder_id;
+ 
+/*set messages to spam based on criteria specified in code*/
+update
+    (select s3.msg_id, s3.send_date as "RECEIVED", s3.email_address as "TO", s3.sender as "FROM", s3.subject, folder.folder_name as "FOLDER"
+    from
+        (select  s2.msg_id, s2.send_date, email_address.email_address, s2.sender, s2.subject, s2.folder
+        from
+            (select  email_address.email_address "SENDER", s1.msg_id, s1.recipient, email.send_date, email.subject, email.folder
+            from
+                (select msg_id, sender, recipient
+                from msg_to
+                where recipient = 243
+                union
+                select msg_id, sender, cc
+                from msg_cc
+                where cc = 243
+                order by msg_id asc) s1
+            join email
+            on s1.msg_id=email.msg_id
+            join email_address
+            on email.address_id = email_address.address_id)s2
+        join email_address
+        on email_address.address_id = s2.recipient
+        order by s2.send_date desc)s3
+    join folder
+    on s3.folder = folder.folder_id)
+set subject = 'IMPORTANT OfFeR'
+where upper(subject) like '%OFFER%' or upper(email_body) like '%PRIZE%';
+
+ 
+/* 8) Identify accounts that have not received new messages in the last 2 weeks. Display the email address. */
+
+select distinct email_address.email_address
+from email
+join email_address
+on email_address.address_id = email.address_id
+where send_date < '27-NOV-2022';
+ 
+/* 9) Utilize security roles to limit users to edit/view rights to their mailbox, but don’t have access to other mailboxes. Identify the SQL operations to implement and demonstrate the functionality of the security roles.*/
+
+
+/* create user Ridwan corresponding to ridwan@qmail.com*/
+alter session set container = xepdb1;
+create user Ridwan identified by superman;
+
+grant connect, resource to Ridwan;
+grant create session to Ridwan;
+grant unlimited tablespace to Ridwan;
+/*Sally, the admin, creates simplified views of email, msg_to, msg_cc, msg_bcc so that Ridwan can view the essential information from emails addressed to or created by him as well as a view of email_address that only contains Ridwan’s details minus his address_id*/
+create view email_address_ridwan
+as select email_address, email_pass, owner_first, owner_last, open_date
+from email_address
+where address_id = 246;
+
+create view email_ridwan
+as select subject, email_body, send_date, msg_size, folder
+from email
+where address_id in (246);
+
+create view msg_to_ridwan
+as select sender, recipient
+from msg_to
+where sender = 246 or recipient = 246;
+
+create view msg_cc_ridwan
+as select sender, cc
+from msg_cc
+where sender = 246 or cc = 246;
+
+create view msg_bcc_ridwan
+as select sender, cc
+from msg_cc
+where sender = 246 or cc = 246;
+/*Now we grant permissions to Ridwan*/
+
+grant select, insert, delete, update
+on email_ridwan
+to ridwan;
+
+grant select, insert, delete
+on msg_to_ridwan
+to ridwan;
+
+grant select, insert, delete
+on msg_cc_ridwan
+to ridwan;
+
+grant select, insert, delete
+on msg_bcc_ridwan
+to ridwan;
+/*Users can view, create, and delete emails, cc’s, and bcc’s but cannot update them except for updating which folder an email is stored in */
+
+grant select, update
+on email_address_ridwan
+to ridwan;
+/*Users can view and update their email address details but cannot create new email addresses or delete their own*/
+
+/*This process is repeated for every user*/
+/*Functionally, the following command now only yields emails sent by Ridwan and does not show non user-essential information */
+select*
+from sally.email_ridwan;
